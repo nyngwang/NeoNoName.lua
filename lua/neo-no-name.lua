@@ -7,7 +7,8 @@ local M = {}
 
 function M.buffer_delete()
   if (vim.api.nvim_tabpage_get_number(0) == 1) then
-    vim.cmd('bd')
+    vim.cmd('bn')
+    vim.cmd('bd #')
     return
   end
   local buffers = vim.tbl_filter(function(buf)
