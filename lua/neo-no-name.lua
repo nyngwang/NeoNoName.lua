@@ -6,14 +6,18 @@ local M = {}
 
 
 function M.buffer_delete()
-  if (vim.api.nvim_tabpage_get_number(0) == 1) then
-    vim.cmd('bn')
-    vim.cmd('bd #')
-    return
-  end
   local buffers = vim.tbl_filter(function(buf)
     return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
   end, vim.api.nvim_list_bufs())
+  if (vim.api.nvim_tabpage_get_number(0) == 1) then
+    if (#buffers > 1) then
+      vim.cmd('bn')
+      vim.cmd('bd #')
+    else
+      vim.cmd('bd')
+    end
+    return
+  end
   local win_from_non_hidden_buf = {}
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     win_from_non_hidden_buf[vim.api.nvim_win_get_buf(win)] = win
