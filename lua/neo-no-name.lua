@@ -10,11 +10,6 @@ function M.buffer_delete()
     vim.cmd('bd')
     return
   end
-  if (vim.api.nvim_tabpage_get_number(0) == 1) then
-    vim.cmd('bn')
-    vim.cmd('bd #')
-    return
-  end
   local buffers = vim.tbl_filter(function(buf)
     return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
   end, vim.api.nvim_list_bufs())
