@@ -5,14 +5,23 @@ local EXPR_NOREF_NOERR_TRUNC = { expr = true, noremap = true, silent = true, now
 local M = {}
 
 
+local function get_all_valid_buffers()
+  return vim.tbl_filter(function(buf)
+    return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
+  end, vim.api.nvim_list_bufs())
+end
+
+---------------------------------------------------------------------------------------------------
 function M.buffer_delete()
-  if (vim.bo.filetype == 'dashboard') then
+  if (vim.bo.filetype == 'dashboard') then -- shut the fuck-up.
     vim.cmd('bd')
     return
   end
-  local buffers = vim.tbl_filter(function(buf)
-    return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
-  end, vim.api.nvim_list_bufs())
+
+  local buffers = get_all_valid_buffers()
+
+
+
   if (vim.api.nvim_tabpage_get_number(0) == 1) then
     if (#buffers > 1) then
       vim.cmd('bn')
