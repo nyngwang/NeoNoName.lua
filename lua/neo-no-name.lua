@@ -58,7 +58,7 @@ function M.neo_no_name()
   -- merge the other `[No Name]`-buffers to this one.
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     if is_loaded_with_no_name(win) then -- use the only `[No Name]`-buffer instead.
-      vim.api.nvim_win_set_buf(first_no_name_buf)
+      vim.api.nvim_win_set_buf(win, first_no_name_buf)
     end
   end
 
