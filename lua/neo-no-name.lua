@@ -37,11 +37,6 @@ local function is_loaded_with_no_name(win)
 end
 ---------------------------------------------------------------------------------------------------
 function M.neo_no_name()
-  if (vim.bo.filetype == 'dashboard') then -- shut the fuck-up.
-    vim.cmd('bd')
-    return
-  end
-
   -- Prepare
   local buffers_valid = get_all_valid_buffers()
   M.wins_from_non_hidden_buf = create_map_wins_from_non_hidden_buf()
