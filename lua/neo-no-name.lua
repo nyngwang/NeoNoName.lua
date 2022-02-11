@@ -10,21 +10,13 @@ local function get_all_valid_buffers()
   end, vim.api.nvim_list_bufs())
 end
 
-local function find_first_no_name_buf(buffers) -- find a No-Name buffer from the existing ones in `:ls`.
-  for _, buf in ipairs(buffers) do
-    if (vim.api.nvim_buf_get_name(buf) == '') then
-      return buf end
-  end
-  return nil
-end
-
 local function is_loaded_with_no_name(win)
   return vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win)) == ''
 end
 ---------------------------------------------------------------------------------------------------
 function M.neo_no_name()
   local buffers_valid = get_all_valid_buffers()
-  local first_no_name_buf = find_first_no_name_buf(buffers_valid)
+  local first_no_name_buf = M.find_first_no_name_buf()
 
   if (first_no_name_buf == nil) then vim.cmd('enew') return end
 
@@ -42,6 +34,17 @@ function M.neo_no_name()
       and buf ~= first_no_name_buf) then
       vim.cmd('bd ' .. buf) end
   end
+end
+
+function M.find_first_no_name_buf(buffers) -- find a No-Name buffer from the existing ones in `:ls`.
+  if not buffers then
+    buffers = get_all_valid_buffers()
+  end
+  for _, buf in ipairs(buffers) do
+    if (vim.api.nvim_buf_get_name(buf) == '') then
+      return buf end
+  end
+  return nil
 end
 
 local function setup_vim_commands()
