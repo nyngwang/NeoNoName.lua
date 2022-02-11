@@ -26,6 +26,9 @@ local function is_loaded_with_no_name(win)
 end
 ---------------------------------------------------------------------------------------------------
 function M.neo_no_name()
+  if vim.fn.bufname() == '' and vim.bo.filetype == '' then
+    vim.cmd('silent! bd #') end
+
   local first_no_name_buf = find_first_no_name_buf()
 
   if (first_no_name_buf == nil) then vim.cmd('enew') return end
