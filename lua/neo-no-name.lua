@@ -12,12 +12,11 @@ local function get_all_valid_buffers()
   end, vim.api.nvim_list_bufs())
 end
 
-local function create_map_wins_from_non_hidden_buf() -- by loop through all windows (visible for sure)
+local function create_map_wins_from_non_hidden_buf() -- map each visible buffer -> `{wins}`
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local cur_buf = vim.api.nvim_win_get_buf(win)
-    if M.wins_from_non_hidden_buf[cur_buf] == nil then -- to satisfy assumption.
-      M.wins_from_non_hidden_buf[cur_buf] = {}
-    end
+    if M.wins_from_non_hidden_buf[cur_buf] == nil then -- init empty array
+      M.wins_from_non_hidden_buf[cur_buf] = {} end
     table.insert(M.wins_from_non_hidden_buf[cur_buf], win)
   end
   return M.wins_from_non_hidden_buf
