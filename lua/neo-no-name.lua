@@ -4,63 +4,65 @@ local EXPR_NOREF_NOERR_TRUNC = { expr = true, noremap = true, silent = true, now
 ---------------------------------------------------------------------------------------------------
 local M = {}
 
-local function get_all_valid_buffers()
-  return vim.tbl_filter(function(buf)
-    return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
-  end, vim.api.nvim_list_bufs())
+
+local function is_valid_and_listed(buf)
+  if buf == nil then buf = 0 end
+  return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
 end
 
-local function find_first_no_name_buf(buffers) -- find a No-Name buffer from the existing ones in `:ls`.
+local function all_valid_listed_buffers()
+  return vim.tbl_filter(is_valid_and_listed, vim.api.nvim_list_bufs())
+end
+
+local function first_noname_from_valid_listed_buffers(buffers) -- find a No-Name buffer from the existing ones in `:ls`.
   if not buffers then
-    buffers = get_all_valid_buffers()
+    buffers = all_valid_listed_buffers()
   end
   for _, buf in ipairs(buffers) do
     if (vim.api.nvim_buf_get_name(buf) == '') then
-      return buf end
+      return buf
+    end
   end
   return nil
 end
 
-local function is_loaded_with_no_name(win)
-  return vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win)) == ''
-end
 ---------------------------------------------------------------------------------------------------
-function M.neo_no_name_clean(keep)
-  local first_no_name_buf = find_first_no_name_buf()
-  if first_no_name_buf == nil then return end
 
-  local to_delete = (keep == nil and first_no_name_buf or keep)
-  for _, buf in ipairs(get_all_valid_buffers()) do
-    if (vim.api.nvim_buf_get_name(buf) == ''
-      and buf ~= to_delete) then
-      vim.cmd('bd ' .. buf) end
+function M.just_one_valid_listed_noname(keep)
+  local first_noname_buf = first_noname_from_valid_listed_buffers()
+  if first_noname_buf == nil then
+    vim.cmd('enew')
+    return
+  end
+  if keep == nil then
+    keep = first_noname_buf
+  end
+
+  for _, buf in ipairs(all_valid_listed_buffers()) do
+    local buf_info = vim.fn.getbufinfo(buf)[1]
+    if buf_info.name == '' and buf_info.bufnr ~= keep then
+      for _, win in ipairs(buf_info.windows) do
+        vim.api.nvim_win_set_buf(win, keep)
+      end
+      vim.cmd('silent! bd ' .. buf)
+    end
   end
 end
 
 function M.neo_no_name()
-  if vim.fn.bufname() == '' and vim.bo.filetype == '' then
-    vim.cmd('silent! bd #') end
-
-  local first_no_name_buf = find_first_no_name_buf()
-
-  if (first_no_name_buf == nil) then vim.cmd('enew') return end
-
-  vim.api.nvim_set_current_buf(first_no_name_buf)
-
-  -- merge the other `[No Name]`-buffers to this one.
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if is_loaded_with_no_name(win) then -- use the only `[No Name]`-buffer instead.
-      vim.api.nvim_win_set_buf(win, first_no_name_buf) end
+  if is_valid_and_listed()
+    and (vim.fn.bufname() == '' and vim.bo.filetype == '') then
+    vim.cmd('silent! bd #')
+    return
   end
-
-  -- delete all the other No-Name buffers.
-  M.neo_no_name_clean(first_no_name_buf)
+  M.just_one_valid_listed_noname()
+  vim.api.nvim_set_current_buf(first_noname_from_valid_listed_buffers())
 end
 
 local function setup_vim_commands()
   vim.cmd [[
     command! NeoNoName lua require'neo-no-name'.neo_no_name()
-    command! NeoNoNameClean lua require'neo-no-name'.neo_no_name_clean()
+    command! NeoNoNameClean lua require'neo-no-name'.just_one_valid_listed_noname()
   ]]
 end
 
