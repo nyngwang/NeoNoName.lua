@@ -25,6 +25,18 @@ local function is_loaded_with_no_name(win)
   return vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win)) == ''
 end
 ---------------------------------------------------------------------------------------------------
+function M.neo_no_name_clean(keep)
+  local first_no_name_buf = find_first_no_name_buf()
+  if first_no_name_buf == nil then return end
+
+  local to_delete = (keep == nil and first_no_name_buf or keep)
+  for _, buf in ipairs(get_all_valid_buffers()) do
+    if (vim.api.nvim_buf_get_name(buf) == ''
+      and buf ~= to_delete) then
+      vim.cmd('bd ' .. buf) end
+  end
+end
+
 function M.neo_no_name()
   if vim.fn.bufname() == '' and vim.bo.filetype == '' then
     vim.cmd('silent! bd #') end
@@ -42,16 +54,13 @@ function M.neo_no_name()
   end
 
   -- delete all the other No-Name buffers.
-  for _, buf in ipairs(get_all_valid_buffers()) do
-    if (vim.api.nvim_buf_get_name(buf) == ''
-      and buf ~= first_no_name_buf) then
-      vim.cmd('bd ' .. buf) end
-  end
+  M.neo_no_name_clean(first_no_name_buf)
 end
 
 local function setup_vim_commands()
   vim.cmd [[
     command! NeoNoName lua require'neo-no-name'.neo_no_name()
+    command! NeoNoNameClean lua require'neo-no-name'.neo_no_name_clean()
   ]]
 end
 
