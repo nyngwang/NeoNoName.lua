@@ -3,6 +3,10 @@ NeoNoName.lua
 
 Layout preserving buffer deletion in Lua.
 
+## DEMO
+
+https://user-images.githubusercontent.com/24765272/164238496-002d9388-f6c4-4697-ae55-d4e789c926f8.mov
+
 
 ## Install & Usage
 
