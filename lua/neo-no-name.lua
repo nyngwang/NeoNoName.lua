@@ -29,6 +29,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function M.just_one_valid_listed_noname(keep)
+  if vim.bo.buftype == 'terminal' then return end
   local first_noname_buf = first_noname_from_valid_listed_buffers()
   if first_noname_buf == nil then
     vim.cmd('enew')
