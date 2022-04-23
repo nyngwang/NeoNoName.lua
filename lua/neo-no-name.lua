@@ -5,6 +5,7 @@ local EXPR_NOREF_NOERR_TRUNC = { expr = true, noremap = true, silent = true, now
 local M = {}
 
 
+
 local function is_valid_and_listed(buf)
   if buf == nil then buf = 0 end
   return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
@@ -26,9 +27,7 @@ local function first_noname_from_valid_listed_buffers(buffers) -- find a No-Name
   return nil
 end
 
----------------------------------------------------------------------------------------------------
-
-function M.just_one_valid_listed_noname(keep)
+local function just_one_valid_listed_noname(keep)
   if vim.bo.buftype == 'terminal'
     or vim.bo.filetype == 'gitcommit'
     then return end
@@ -51,6 +50,13 @@ function M.just_one_valid_listed_noname(keep)
     end
   end
 end
+---------------------------------------------------------------------------------------------------
+
+function M.neo_no_name_clean()
+  local cur_buf = vim.api.nvim_get_current_buf()
+  just_one_valid_listed_noname()
+  vim.api.nvim_set_current_buf(cur_buf)
+end
 
 function M.neo_no_name()
   if is_valid_and_listed()
@@ -58,14 +64,14 @@ function M.neo_no_name()
     vim.cmd('silent! bd #')
     return
   end
-  M.just_one_valid_listed_noname()
+  just_one_valid_listed_noname()
   vim.api.nvim_set_current_buf(first_noname_from_valid_listed_buffers())
 end
 
 local function setup_vim_commands()
   vim.cmd [[
     command! NeoNoName lua require'neo-no-name'.neo_no_name()
-    command! NeoNoNameClean lua require'neo-no-name'.just_one_valid_listed_noname()
+    command! NeoNoNameClean lua require'neo-no-name'.neo_no_name_clean()
   ]]
 end
 
