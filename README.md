@@ -8,6 +8,11 @@ Layout preserving buffer deletion in Lua.
 https://user-images.githubusercontent.com/24765272/164238496-002d9388-f6c4-4697-ae55-d4e789c926f8.mov
 
 
+## TL;DR
+
+This plugin manages the only `[No Name]` buffer as a replacement to achieve layout-preserving buffer-deletion.
+
+
 ## Intro.
 
 The main function of this plugin is `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)`,
