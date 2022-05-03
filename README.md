@@ -8,16 +8,21 @@ Layout preserving buffer deletion in Lua.
 https://user-images.githubusercontent.com/24765272/164238496-002d9388-f6c4-4697-ae55-d4e789c926f8.mov
 
 
-## Install & Usage
+## Intro.
 
-This plugin provides two *STRANGE* behaviours:
-- call `NeoNoName` at non-`[No Name]`-buffer to simulate "remove the current buffer".
-- call `NeoNoName` at `[No Name]`-buffer to delete the previous buffer.
+The main function of this plugin is `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)`,
+where both params are optional(default to `bn`, `bp`, resp.)
 
-Now, you can:
+Two facts:
+- call `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)` at non-`[No Name]` buffer
+  - will change the current buffer to the only one `[No Name]` buffer
+  - if the only one `[No Name]` buffer does not exist, it will be created
+- call `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)` at `[No Name]` buffer
+  - will delete the previous buffer
+  - and jump to the next buffer of the just-deleted buffer(by providing both `cmd_bn`, `cmd_bp`, you can define your own "the next buffer")
 
-- call `NeoNoName` **twice** at any buffer you have finish working to really delete it.
-- call `NeoNoName` **once** at any window to swap the buffer out, so you won't get distracted by the content of this buffer.
+
+## Install
 
 
 ```lua
@@ -25,6 +30,8 @@ use {
   'nyngwang/NeoNoName.lua',
   config = function ()
     vim.keymap.set('n', '<M-w>', function () vim.cmd('NeoNoName') end, {slient=true, noremap=true, nowait=true})
+    -- If you are using bufferline.nvim
+    -- vim.keymap.set('n', '<M-w>', function () vim.cmd('NeoNoNameBufferline') end, {slient=true, noremap=true, nowait=true})
   end
 }
 ```
