@@ -3,6 +3,7 @@ local NOREF_NOERR = { noremap = true, silent = true }
 local EXPR_NOREF_NOERR_TRUNC = { expr = true, noremap = true, silent = true, nowait = true }
 ---------------------------------------------------------------------------------------------------
 local M = {}
+local caller = nil
 local buf_right = nil
 
 local function is_valid_and_listed(buf)
@@ -30,7 +31,7 @@ local function just_one_valid_listed_noname(keep)
   if vim.bo.buftype == 'terminal'
     or vim.bo.filetype == 'gitcommit'
     then return end
-  local cur_buf = vim.api.nvim_get_current_buf()
+  local cur_buf = vim.fn.bufnr()
   local first_noname_buf = first_noname_from_valid_listed_buffers()
   if first_noname_buf == nil then
     vim.cmd('enew')
@@ -62,22 +63,25 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   if cmd_bp == nil then cmd_bp = 'bp' end
 
   if not is_valid_and_listed() then
+    just_one_valid_listed_noname()
     vim.api.nvim_set_current_buf(first_noname_from_valid_listed_buffers())
+    caller = nil
     buf_right = nil
     return
   end
   if vim.fn.bufname() == '' and vim.bo.filetype == '' then
-    vim.cmd('silent! bd #')
+    if caller == nil then return end
+    vim.cmd('silent! bd ' .. caller)
     if buf_right ~= nil then
       vim.api.nvim_set_current_buf(buf_right)
-      if vim.fn.bufname() == '' then vim.cmd(cmd_bn) end
+      if vim.fn.bufname() == '' and vim.bo.filetype == '' then vim.cmd(cmd_bn) end
     end
     return
   end
   just_one_valid_listed_noname()
+  caller = vim.fn.bufnr()
   if #vim.fn.getbufinfo({ buflisted = 1 }) >= 3 then
     vim.cmd(cmd_bn)
-    print('buf_right: ' .. vim.fn.bufnr())
     buf_right = vim.fn.bufnr()
     vim.cmd(cmd_bp)
   else
