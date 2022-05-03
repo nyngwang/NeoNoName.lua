@@ -60,22 +60,24 @@ function M.neo_no_name_clean()
   just_one_valid_listed_noname()
 end
 
-function M.neo_no_name()
+function M.neo_no_name(cmd_bn, cmd_bp)
+  if cmd_bn == nil then cmd_bn = 'bn' end
+  if cmd_bp == nil then cmd_bp = 'bp' end
   if is_valid_and_listed()
     and (vim.fn.bufname() == '' and vim.bo.filetype == '') then
     vim.cmd('silent! bd #')
     if buf_right ~= nil then
       vim.api.nvim_set_current_buf(buf_right)
-      if vim.fn.bufname() == '' then vim.cmd('bn') end
+      if vim.fn.bufname() == '' then vim.cmd(cmd_bn) end
     end
     return
   end
   just_one_valid_listed_noname()
   if #vim.fn.getbufinfo({ buflisted = 1 }) >= 3 then
-    vim.cmd('bn')
+    vim.cmd(cmd_bn)
     print('buf_right: ' .. vim.fn.bufnr())
     buf_right = vim.fn.bufnr()
-    vim.cmd('bp')
+    vim.cmd(cmd_bp)
   else
     buf_right = nil
   end
@@ -85,6 +87,7 @@ end
 local function setup_vim_commands()
   vim.cmd [[
     command! NeoNoName lua require'neo-no-name'.neo_no_name()
+    command! NeoNoNameBufferline lua require'neo-no-name'.neo_no_name('BufferLineCycleNext', 'BufferLineCyclePrev')
     command! NeoNoNameClean lua require'neo-no-name'.neo_no_name_clean()
   ]]
 end
