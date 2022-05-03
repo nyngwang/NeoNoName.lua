@@ -5,8 +5,6 @@ local EXPR_NOREF_NOERR_TRUNC = { expr = true, noremap = true, silent = true, now
 local M = {}
 local buf_right = nil
 
-
-
 local function is_valid_and_listed(buf)
   if buf == nil then buf = 0 end
   return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
@@ -55,7 +53,6 @@ local function just_one_valid_listed_noname(keep)
   vim.api.nvim_set_current_buf(cur_buf)
 end
 ---------------------------------------------------------------------------------------------------
-
 function M.neo_no_name_clean()
   just_one_valid_listed_noname()
 end
@@ -93,5 +90,6 @@ local function setup_vim_commands()
 end
 
 setup_vim_commands()
+
 
 return M
