@@ -60,8 +60,13 @@ end
 function M.neo_no_name(cmd_bn, cmd_bp)
   if cmd_bn == nil then cmd_bn = 'bn' end
   if cmd_bp == nil then cmd_bp = 'bp' end
-  if is_valid_and_listed()
-    and (vim.fn.bufname() == '' and vim.bo.filetype == '') then
+
+  if not is_valid_and_listed() then
+    vim.api.nvim_set_current_buf(first_noname_from_valid_listed_buffers())
+    buf_right = nil
+    return
+  end
+  if vim.fn.bufname() == '' and vim.bo.filetype == '' then
     vim.cmd('silent! bd #')
     if buf_right ~= nil then
       vim.api.nvim_set_current_buf(buf_right)
