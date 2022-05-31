@@ -5,6 +5,7 @@ local EXPR_NOREF_NOERR_TRUNC = { expr = true, noremap = true, silent = true, now
 local M = {}
 local caller = nil
 local buf_right = nil
+local caller_is_terminal = false
 
 local function is_valid_and_listed(buf)
   if buf == nil then buf = 0 end
@@ -28,9 +29,7 @@ local function first_noname_from_valid_listed_buffers(buffers) -- find a No-Name
 end
 
 local function just_one_valid_listed_noname(keep)
-  if vim.bo.buftype == 'terminal'
-    or vim.bo.filetype == 'gitcommit'
-    then return end
+  if vim.bo.filetype == 'gitcommit' then return end
   local cur_buf = vim.fn.bufnr()
   local first_noname_buf = first_noname_from_valid_listed_buffers()
   if first_noname_buf == nil then
@@ -71,7 +70,11 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   end
   if vim.fn.bufname() == '' and vim.bo.filetype == '' then
     if caller == nil then return end
-    vim.cmd('silent! bd ' .. caller)
+    if caller_is_terminal then
+      vim.cmd('silent! bd! ' .. caller)
+    else
+      vim.cmd('silent! bd ' .. caller)
+    end
     if buf_right ~= nil then
       vim.api.nvim_set_current_buf(buf_right)
       if vim.fn.bufname() == '' and vim.bo.filetype == '' then vim.cmd(cmd_bn) end
@@ -80,6 +83,7 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   end
   just_one_valid_listed_noname()
   caller = vim.fn.bufnr()
+  caller_is_terminal = vim.bo.buftype == 'terminal'
   if #vim.fn.getbufinfo({ buflisted = 1 }) >= 3 then
     vim.cmd(cmd_bn)
     buf_right = vim.fn.bufnr()
