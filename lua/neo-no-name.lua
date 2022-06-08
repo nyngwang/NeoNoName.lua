@@ -64,6 +64,10 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   if cmd_bp == nil then cmd_bp = 'bp' end
 
   if not is_valid_and_listed() then
+    if vim.bo.filetype == 'fzf' then
+      vim.api.nvim_input('a<Esc>')
+      return
+    end
     just_one_valid_listed_noname()
     vim.api.nvim_set_current_buf(first_noname_from_valid_listed_buffers())
     caller = nil
