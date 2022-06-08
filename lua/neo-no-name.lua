@@ -34,7 +34,9 @@ local function just_one_valid_listed_noname(keep)
   local first_noname_buf = first_noname_from_valid_listed_buffers()
   if first_noname_buf == nil then
     vim.cmd('enew')
-    vim.api.nvim_set_current_buf(cur_buf)
+    if is_valid_and_listed(cur_buf) then
+      vim.api.nvim_set_current_buf(cur_buf)
+    end
     return
   end
   if keep == nil then
