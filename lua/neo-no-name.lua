@@ -7,45 +7,43 @@ local caller = nil
 local buf_right = nil
 local caller_is_terminal = false
 
-local function is_valid_and_listed(buf)
+local function is_no_name_buf(buf)
   if buf == nil then buf = 0 end
-  return vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, 'buflisted')
+  return
+    vim.api.nvim_buf_is_valid(buf)
+    and vim.api.nvim_buf_get_option(buf, 'buflisted')
+    and vim.api.nvim_buf_get_option(buf, 'filetype') == ''
+    and vim.api.nvim_buf_get_option(buf, 'buftype') == ''
+    and vim.api.nvim_buf_get_name(buf) == ''
 end
 
-local function all_valid_listed_buffers()
-  return vim.tbl_filter(is_valid_and_listed, vim.api.nvim_list_bufs())
+local function all_no_name_bufs()
+  return vim.tbl_filter(is_no_name_buf, vim.api.nvim_list_bufs())
 end
 
-local function first_noname_from_valid_listed_buffers(buffers) -- find a No-Name buffer from the existing ones in `:ls`.
-  if not buffers then
-    buffers = all_valid_listed_buffers()
-  end
-  for _, buf in ipairs(buffers) do
-    if (vim.api.nvim_buf_get_name(buf) == '') then
-      return buf
-    end
-  end
-  return nil
+local function get_first_noname_buf() -- find a No-Name buffer from the existing ones in `:ls`.
+  return all_no_name_bufs()[1]
 end
 
-local function just_one_valid_listed_noname(keep)
+local function just_one_valid_listed_noname()
   if vim.bo.filetype == 'gitcommit' then return end
-  local cur_buf = vim.fn.bufnr()
-  local first_noname_buf = first_noname_from_valid_listed_buffers()
-  if first_noname_buf == nil then
+
+  local cur_buf = vim.api.nvim_get_current_buf()
+  if #all_no_name_bufs() == 0 then
     vim.cmd('enew')
-    if is_valid_and_listed(cur_buf) then
-      vim.api.nvim_set_current_buf(cur_buf)
-    end
+    vim.api.nvim_set_current_buf(cur_buf)
     return
   end
-  if keep == nil then
-    keep = first_noname_buf
-  end
 
-  for _, buf in ipairs(all_valid_listed_buffers()) do
-    local buf_info = vim.fn.getbufinfo(buf)[1]
-    if buf_info.name == '' and buf_info.bufnr ~= keep then
+  if #all_no_name_bufs() == 1 then return end
+
+  local keep = is_no_name_buf(cur_buf)
+    and cur_buf -- if the current buffer is a No-Name buffer, it won't be deleted
+    or get_first_noname_buf()
+
+  for _, buf in ipairs(all_no_name_bufs()) do
+    if buf ~= keep then
+      local buf_info = vim.fn.getbufinfo(buf)[1]
       for _, win in ipairs(buf_info.windows) do
         vim.api.nvim_win_set_buf(win, keep)
       end
@@ -63,18 +61,9 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   if cmd_bn == nil then cmd_bn = 'bn' end
   if cmd_bp == nil then cmd_bp = 'bp' end
 
-  if not is_valid_and_listed() then
-    if vim.bo.filetype == 'fzf' then
-      vim.api.nvim_input('a<Esc>')
-      return
-    end
-    just_one_valid_listed_noname()
-    vim.api.nvim_set_current_buf(first_noname_from_valid_listed_buffers())
-    caller = nil
-    buf_right = nil
-    return
-  end
-  if vim.fn.bufname() == '' and vim.bo.filetype == '' then
+  just_one_valid_listed_noname()
+
+  if is_no_name_buf() then
     if caller == nil then return end
     if caller_is_terminal then
       vim.cmd('silent! bd! ' .. caller)
@@ -83,13 +72,19 @@ function M.neo_no_name(cmd_bn, cmd_bp)
     end
     if buf_right ~= nil then
       vim.api.nvim_set_current_buf(buf_right)
-      if vim.fn.bufname() == '' and vim.bo.filetype == '' then vim.cmd(cmd_bn) end
+      if is_no_name_buf(buf_right) then vim.cmd(cmd_bn) end
     end
     return
   end
-  just_one_valid_listed_noname()
+
+  if vim.bo.filetype == 'fzf' then
+    vim.api.nvim_input('a<Esc>')
+    return
+  end
+
   caller = vim.fn.bufnr()
   caller_is_terminal = vim.bo.buftype == 'terminal'
+
   if #vim.fn.getbufinfo({ buflisted = 1 }) >= 3 then
     vim.cmd(cmd_bn)
     buf_right = vim.fn.bufnr()
@@ -97,7 +92,8 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   else
     buf_right = nil
   end
-  vim.api.nvim_set_current_buf(first_noname_from_valid_listed_buffers())
+
+  vim.api.nvim_set_current_buf(get_first_noname_buf())
 end
 
 local function setup_vim_commands()
