@@ -109,6 +109,7 @@ function M.neo_no_name(cmd_bn, cmd_bp)
 end
 
 function M.restore_last_closed_buf()
+  if #caller_history_stack == 0 then return end
   local last_buf = caller_history_stack[#caller_history_stack]
   table.remove(caller_history_stack, #caller_history_stack)
   vim.api.nvim_set_current_buf(last_buf)
