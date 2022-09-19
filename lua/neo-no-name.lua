@@ -7,6 +7,13 @@ local caller = nil
 local buf_right = nil
 local caller_is_terminal = false
 
+local function is_valid_listed_buf(buf)
+  if buf == nil then buf = 0 end
+  return
+    vim.api.nvim_buf_is_valid(buf)
+    and vim.api.nvim_buf_get_option(buf, 'buflisted')
+end
+
 local function is_valid_listed_no_name_buf(buf)
   if buf == nil then buf = 0 end
   return
@@ -15,6 +22,10 @@ local function is_valid_listed_no_name_buf(buf)
     and vim.api.nvim_buf_get_option(buf, 'filetype') == ''
     and vim.api.nvim_buf_get_option(buf, 'buftype') == ''
     and vim.api.nvim_buf_get_name(buf) == ''
+end
+
+local function all_valid_listed_bufs()
+  return vim.tbl_filter(is_valid_listed_buf, vim.api.nvim_list_bufs())
 end
 
 local function all_valid_listed_no_name_bufs()
@@ -63,16 +74,18 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   keep_only_one_valid_listed_no_name()
 
   if is_valid_listed_no_name_buf() then
-    if caller == nil then return end
+    if buf_right == nil then return end
+
     if caller_is_terminal then
       vim.cmd('silent! bd! ' .. caller)
     else
       vim.cmd('silent! bd ' .. caller)
     end
-    if buf_right ~= nil then
+
+    if buf_right ~= caller then
       vim.api.nvim_set_current_buf(buf_right)
-      if is_valid_listed_no_name_buf(buf_right) then vim.cmd(cmd_bn) end
     end
+    buf_right = nil
     return
   end
 
@@ -84,13 +97,11 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   caller = vim.fn.bufnr()
   caller_is_terminal = vim.bo.buftype == 'terminal'
 
-  if #vim.fn.getbufinfo({ buflisted = 1 }) >= 3 then
+  vim.cmd(cmd_bn)
+  if is_valid_listed_no_name_buf(vim.fn.bufnr()) then
     vim.cmd(cmd_bn)
-    buf_right = vim.fn.bufnr()
-    vim.cmd(cmd_bp)
-  else
-    buf_right = nil
   end
+  buf_right = vim.fn.bufnr()
 
   vim.api.nvim_set_current_buf(get_current_or_first_valid_listed_no_name_buf())
 end
