@@ -76,6 +76,7 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   if is_valid_listed_no_name_buf() then
     if buf_right == nil then return end
 
+    M.last_closed_buf = caller
     if caller_is_terminal then
       vim.cmd('silent! bd! ' .. caller)
     else
