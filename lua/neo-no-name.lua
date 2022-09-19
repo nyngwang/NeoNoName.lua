@@ -6,6 +6,7 @@ local M = {}
 local caller = nil
 local buf_right = nil
 local caller_is_terminal = false
+local caller_history_stack = {}
 
 local function is_valid_listed_buf(buf)
   if buf == nil then buf = 0 end
@@ -76,7 +77,7 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   if is_valid_listed_no_name_buf() then
     if buf_right == nil then return end
 
-    M.last_closed_buf = caller
+    table.insert(caller_history_stack, caller)
     if caller_is_terminal then
       vim.cmd('silent! bd! ' .. caller)
     else
@@ -107,11 +108,19 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   vim.api.nvim_set_current_buf(get_current_or_first_valid_listed_no_name_buf())
 end
 
+function M.restore_last_closed_buf()
+  local last_buf = caller_history_stack[#caller_history_stack]
+  table.remove(caller_history_stack, #caller_history_stack)
+  vim.api.nvim_set_current_buf(last_buf)
+  vim.cmd('e')
+end
+
 local function setup_vim_commands()
   vim.cmd [[
     command! NeoNoName lua require'neo-no-name'.neo_no_name()
     command! NeoNoNameBufferline lua require'neo-no-name'.neo_no_name('BufferLineCycleNext', 'BufferLineCyclePrev')
     command! NeoNoNameClean lua require'neo-no-name'.neo_no_name_clean()
+    command! NeoNoNameRestoreLastClosedBuf lua require'neo-no-name'.restore_last_closed_buf()
   ]]
 end
 
