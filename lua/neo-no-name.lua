@@ -25,7 +25,7 @@ local function is_valid_listed_no_name_buf(buf)
     and vim.api.nvim_buf_get_name(buf) == ''
 end
 
-local function all_valid_listed_bufs()
+function M.all_valid_listed_bufs()
   return vim.tbl_filter(is_valid_listed_buf, vim.api.nvim_list_bufs())
 end
 
