@@ -100,8 +100,13 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   caller_is_terminal = vim.bo.buftype == 'terminal'
 
   vim.cmd(cmd_bn)
-  if is_valid_listed_no_name_buf(vim.fn.bufnr()) then
+
+  while is_valid_listed_no_name_buf(vim.fn.bufnr())
+    or vim.bo.buftype == 'terminal' do
     vim.cmd(cmd_bn)
+    if vim.fn.bufnr() == caller then
+      break
+    end
   end
   buf_right = vim.fn.bufnr()
 
