@@ -72,6 +72,11 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   if cmd_bn == nil then cmd_bn = 'bn' end
   if cmd_bp == nil then cmd_bp = 'bp' end
 
+  if -- file is not saved
+    vim.bo.modified then
+    return
+  end
+
   keep_only_one_valid_listed_no_name()
 
   if is_valid_listed_no_name_buf() then
