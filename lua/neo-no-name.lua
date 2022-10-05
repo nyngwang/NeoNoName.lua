@@ -33,7 +33,7 @@ local function all_valid_listed_no_name_bufs()
   return vim.tbl_filter(is_valid_listed_no_name_buf, vim.api.nvim_list_bufs())
 end
 
-local function get_current_or_first_valid_listed_no_name_buf()
+function M.get_current_or_first_valid_listed_no_name_buf()
   local cur_buf = vim.api.nvim_get_current_buf()
   return is_valid_listed_no_name_buf(cur_buf) and cur_buf or all_valid_listed_no_name_bufs()[1]
 end
@@ -51,7 +51,7 @@ local function keep_only_one_valid_listed_no_name()
 
   if #all_valid_listed_no_name_bufs() == 1 then return end
 
-  local keep = get_current_or_first_valid_listed_no_name_buf()
+  local keep = M.get_current_or_first_valid_listed_no_name_buf()
 
   for _, buf in ipairs(all_valid_listed_no_name_bufs()) do
     if buf ~= keep then
@@ -115,7 +115,7 @@ function M.neo_no_name(cmd_bn, cmd_bp)
   end
   buf_right = vim.fn.bufnr()
 
-  vim.api.nvim_set_current_buf(get_current_or_first_valid_listed_no_name_buf())
+  vim.api.nvim_set_current_buf(M.get_current_or_first_valid_listed_no_name_buf())
 end
 
 function M.restore_last_closed_buf()
