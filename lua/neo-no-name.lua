@@ -65,11 +65,10 @@ function M.neo_no_name(go_next)
   caller_is_terminal = vim.bo.buftype == 'terminal'
 
   repeat
-    if U.is_no_name_buf()
-      or M.should_skip() then
-      go_next()
-    end
-  until vim.api.nvim_get_current_buf() == caller
+    go_next()
+  until
+    vim.api.nvim_get_current_buf() == caller
+    or not (U.is_no_name_buf() or M.should_skip())
 
   buf_right = vim.api.nvim_get_current_buf()
 
