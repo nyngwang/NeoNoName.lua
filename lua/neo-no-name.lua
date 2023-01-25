@@ -17,6 +17,7 @@ function M.setup(opts)
                   and type(opts.should_skip({ bufnr = vim.api.nvim_get_current_buf() })) == 'boolean')
     and opts.should_skip
     or (function (_) return false end)
+  M.go_next_on_delete = opts.go_next_on_delete or true
 end
 
 
@@ -46,7 +47,8 @@ function M.neo_no_name(go_next)
       vim.cmd('silent! bd ' .. caller)
     end
 
-    if buf_right ~= caller then
+    if buf_right ~= caller
+      and M.go_next_on_delete then
       vim.api.nvim_set_current_buf(buf_right)
     end
     buf_right = nil
