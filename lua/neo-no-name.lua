@@ -13,6 +13,7 @@ local utils = {
 function M.setup(opts)
   opts = opts or {}
   M.before_hooks = opts.before_hooks or {}
+  M.should_skip = opts.should_skip or (function () return false end)
 end
 
 
@@ -22,9 +23,10 @@ function M.neo_no_name_clean()
 end
 
 
-function M.neo_no_name(cmd_bp, cmd_bn)
-  if cmd_bp == nil then cmd_bp = 'bp' end
-  if cmd_bn == nil then cmd_bn = 'bn' end
+function M.neo_no_name(go_next)
+  if go_next == nil then
+    go_next = function () vim.cmd('bn') end
+  end
 
   -- don't touch modified files as always.
   if vim.bo.modified then return end
@@ -62,16 +64,13 @@ function M.neo_no_name(cmd_bp, cmd_bn)
   caller = vim.api.nvim_get_current_buf()
   caller_is_terminal = vim.bo.buftype == 'terminal'
 
-  vim.cmd(cmd_bn)
-
-  while
-    U.is_no_name_buf()
-    or vim.bo.buftype == 'terminal' do
-    vim.cmd(cmd_bn)
-    if vim.api.nvim_get_current_buf() == caller then
-      break
+  repeat
+    if U.is_no_name_buf()
+      or M.should_skip() then
+      go_next()
     end
-  end
+  until vim.api.nvim_get_current_buf() == caller
+
   buf_right = vim.api.nvim_get_current_buf()
 
   vim.api.nvim_set_current_buf(U.give_me_a_no_name())
