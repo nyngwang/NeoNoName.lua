@@ -17,7 +17,7 @@ function M.setup(opts)
                   and type(opts.should_skip({ bufnr = vim.api.nvim_get_current_buf() })) == 'boolean')
     and opts.should_skip
     or (function (_) return false end)
-  M.go_next_on_delete = opts.go_next_on_delete or true
+  M.go_next_on_delete = opts.go_next_on_delete and true
 end
 
 
