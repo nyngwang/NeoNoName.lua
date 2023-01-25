@@ -19,25 +19,60 @@ The main function of this plugin is `lua require('neo-no-name').neo_no_name(cmd_
 where both params are optional(default to `bn`, `bp`, resp.)
 
 Two facts:
-- call `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)` at non-`[No Name]` buffer
-  - will change the current buffer to the only one `[No Name]` buffer
-  - if the only one `[No Name]` buffer does not exist, it will be created
-- call `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)` at `[No Name]` buffer
-  - will delete the previous buffer
-  - and jump to the next buffer of the just-deleted buffer(by providing both `cmd_bn`, `cmd_bp`, you can define your own "the next buffer")
+- call `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)` at any buffer that is not `[No Name]`...
+  - will remove duplicate `[No Name]` buffers if there are many. (This clean-up your buffer list)
+  - will swap your current buffer with the `[No Name]` buffer. (will create one if it doesn't exist)
+- call `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)` again at the `[No Name]` buffer...
+  - will delete the buffer that just got swapped out.
+  - and jump to the next buffer of that deleted buffer
+    - by providing both `cmd_bn`, `cmd_bp`, you can define "the next/prev buffer" with your own logic
 
+### APIs
 
-## Install
-
+Sometimes you don't want to call `cmd_bn`/`cmd_bp` on certain types of buffers.
+In this case, you can use `before_hooks` with `abort()`:
 
 ```lua
-use {
-  'nyngwang/NeoNoName.lua',
-  config = function ()
-    vim.keymap.set('n', '<M-w>', function () vim.cmd('NeoNoName') end, {slient=true, noremap=true, nowait=true})
-    -- If you are using bufferline.nvim
-    -- vim.keymap.set('n', '<M-w>', function () vim.cmd('NeoNoNameBufferline') end, {slient=true, noremap=true, nowait=true})
-  end
+before_hooks = {
+  -- this abort `NeoNoName` when calling on terminal buffer created by ibhagwan/fzf-lua.
+  function (u)
+    if vim.bo.filetype == 'fzf' then
+      vim.api.nvim_input('a<Esc>')
+      u.abort()
+    end
+  end,
 }
 ```
 
+More APIs will be provided when needed. Feel free to create an issue/PR telling about what you need.
+
+
+## Example Config
+
+This is an example for [wbthomason/packer.nvim](https://github.com/wbthomason/packer.nvim)
+
+```lua
+-- remove `use` if you're using folke/lazy.nvim
+use {
+  'nyngwang/NeoNoName.lua',
+  config = function ()
+    require('neo-no-name').setup {
+      before_hooks = {
+        function (u)
+          if vim.bo.filetype == 'fzf' then
+            vim.api.nvim_input('a<Esc>')
+            u.abort()
+          end
+        end,
+      }
+    }
+    -- replace the current buffer with the `[No Name]`.
+    vim.keymap.set('n', '<M-w>', function () vim.cmd('NeoNoName') end)
+    -- the plain old buffer delete.
+    vim.keymap.set('n', '<Leader>bd', function ()
+      vim.cmd('NeoNoName')
+      vim.cmd('NeoNoName')
+    end)
+  end
+}
+```
