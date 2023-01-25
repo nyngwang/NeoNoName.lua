@@ -17,13 +17,6 @@ function M.all_no_name_bufs()
 end
 
 
-function M.give_me_a_no_name()
-  -- prefer the current [No Name] buffer.
-  local cur_buf = vim.api.nvim_get_current_buf()
-  return M.is_no_name_buf(cur_buf) and cur_buf or M.all_no_name_bufs()[1]
-end
-
-
 function M.ensure_only_one_no_name()
   local cur_buf = vim.api.nvim_get_current_buf()
 
@@ -48,6 +41,14 @@ function M.ensure_only_one_no_name()
       vim.cmd('silent! bd ' .. buf)
     end
   end
+end
+
+
+function M.give_me_a_no_name()
+  M.ensure_only_one_no_name()
+  -- prefer the current [No Name] buffer.
+  local cur_buf = vim.api.nvim_get_current_buf()
+  return M.is_no_name_buf(cur_buf) and cur_buf or M.all_no_name_bufs()[1]
 end
 
 
