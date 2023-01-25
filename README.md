@@ -15,22 +15,57 @@ This plugin manages the only `[No Name]` buffer as a replacement to achieve layo
 
 ## Intro.
 
-The main function of this plugin is `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)`,
-where both params are optional(default to `bn`, `bp`, resp.)
+The main function of this plugin is `lua require('neo-no-name').neo_no_name(go_next)`,
+where an optional function `go_next` can be provided to "go next" buffer in your way on deletion.
 
 Two facts:
-- call `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)` at any buffer that is not `[No Name]`...
+- call `neo_no_name(go_next)` at any buffer that is not `[No Name]`...
   - will remove duplicate `[No Name]` buffers if there are many. (This clean-up your buffer list)
   - will swap your current buffer with the `[No Name]` buffer. (will create one if it doesn't exist)
-- call `lua require('neo-no-name').neo_no_name(cmd_bn, cmd_bp)` again at the `[No Name]` buffer...
-  - will delete the buffer that just got swapped out.
-  - and jump to the next buffer of that deleted buffer
-    - by providing both `cmd_bn`, `cmd_bp`, you can define "the next/prev buffer" with your own logic
+- call `neo_no_name(go_next)` again at the `[No Name]` buffer...
+  - will jump to the buffer arrived by `go_next()` before that buffer got swapped out.
+  - will delete the buffer that is swapped out.
+    - by providing `go_next`, you can decide what's the next buffer on deletion.
 
-### APIs
 
-Sometimes you don't want to call `cmd_bn`/`cmd_bp` on certain types of buffers.
-In this case, you can use `before_hooks` with `abort()`:
+### `setup` Options
+
+#### `go_next_on_delete`, type `boolean`
+
+*default: `true`*
+
+whether or not to `go_next()` after you call `neo_no_name(go_next)` twice on the same window.
+
+
+#### `should_skip`, type `function`
+
+*default: `function return false end`*
+
+For example, you can skip all terminal buffers on `go_next()`:
+
+```lua
+should_skip = function (c)
+  return vim.api.nvim_buf_get_option(c.bufnr, 'bt') == 'terminal'
+end,
+```
+
+where `c` is the context when you call `neo_no_name(go_next)`:
+
+```lua
+context = {
+  bufnr = vim.api.nvim_get_current_buf()
+}
+```
+
+Feel free to create an issue/PR telling about what you need.
+
+
+#### `before_hooks`, type `{ function, ... }`
+
+*default: `{}`*
+
+You might want to avoid calling `go_next` on some situation.
+In this case, you can call `abort()` in any function you provided by `before_hooks`:
 
 ```lua
 before_hooks = {
@@ -44,7 +79,13 @@ before_hooks = {
 }
 ```
 
-More APIs will be provided when needed. Feel free to create an issue/PR telling about what you need.
+where `u` provides some APIs to change the behavior of this plugin:
+
+```
+utils.abort: abort the current execution of `NeoNoName`.
+```
+
+Feel free to create an issue/PR telling about what you need.
 
 
 ## Example Config
@@ -64,7 +105,8 @@ use {
             u.abort()
           end
         end,
-      }
+      },
+      go_next_on_delete = false, -- layout-preserving buffer deletion.
     }
     -- replace the current buffer with the `[No Name]`.
     vim.keymap.set('n', '<M-w>', function () vim.cmd('NeoNoName') end)
