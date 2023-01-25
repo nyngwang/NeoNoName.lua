@@ -13,7 +13,9 @@ local utils = {
 function M.setup(opts)
   opts = opts or {}
   M.before_hooks = opts.before_hooks or {}
-  M.should_skip = opts.should_skip or (function () return false end)
+  M.should_skip = (type(opts.should_skip) == 'function' and type(opts.should_skip()) == 'boolean')
+    and opts.should_skip
+    or (function () return false end)
 end
 
 
