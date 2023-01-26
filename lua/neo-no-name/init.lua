@@ -13,10 +13,9 @@ local utils = {
 function M.setup(opts)
   opts = opts or {}
   M.before_hooks = opts.before_hooks or {}
-  M.should_skip = (type(opts.should_skip) == 'function'
-                  and type(opts.should_skip({ bufnr = vim.api.nvim_get_current_buf() })) == 'boolean')
+  M.should_skip = (type(opts.should_skip) == 'function' and type(opts.should_skip()) == 'boolean')
     and opts.should_skip
-    or (function (_) return false end)
+    or (function () return false end)
   M.go_next_on_delete = opts.go_next_on_delete and true
 end
 
@@ -71,12 +70,9 @@ function M.neo_no_name(go_next)
 
   repeat
     go_next()
-    local context = {
-      bufnr = vim.api.nvim_get_current_buf()
-    }
   until
     vim.api.nvim_get_current_buf() == caller
-    or not (U.is_no_name_buf() or M.should_skip(context))
+    or not (U.is_no_name_buf() or M.should_skip())
 
   buf_right = vim.api.nvim_get_current_buf()
 
