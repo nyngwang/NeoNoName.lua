@@ -27,8 +27,24 @@ Two facts:
   - will delete the buffer that is swapped out.
     - by providing `go_next`, you can decide what's the next buffer on deletion.
 
+## Docs
 
-### `setup` Options
+### `neo_no_name(go_next)`
+
+#### `go_next`, type `function`
+
+*default: `function () vim.cmd('bn') end`*
+
+So, for example, if you're a user of [akinsho/bufferline.nvim](https://github.com/akinsho/bufferline.nvim) then you can pass something like this:
+
+```lua
+function()
+  vim.cmd('BufferLineCycleNext')
+end
+```
+
+
+### `setup`
 
 #### `go_next_on_delete`, type `boolean`
 
@@ -44,20 +60,10 @@ whether or not to `go_next()` after you call `neo_no_name(go_next)` twice on the
 For example, you can skip all terminal buffers on `go_next()`:
 
 ```lua
-should_skip = function (c)
-  return vim.api.nvim_buf_get_option(c.bufnr, 'bt') == 'terminal'
+should_skip = function ()
+  return vim.bo.buftype == 'terminal'
 end,
 ```
-
-where `c` is the context when you call `neo_no_name(go_next)`:
-
-```lua
-context = {
-  bufnr = vim.api.nvim_get_current_buf()
-}
-```
-
-Feel free to create an issue/PR telling about what you need.
 
 
 #### `before_hooks`, type `{ function, ... }`
@@ -106,6 +112,10 @@ use {
           end
         end,
       },
+      should_skip = function ()
+        -- never go next to a terminal buffer.
+        return vim.bo.buftype == 'terminal'
+      end,
       go_next_on_delete = false, -- layout-preserving buffer deletion.
     }
     -- replace the current buffer with the `[No Name]`.
