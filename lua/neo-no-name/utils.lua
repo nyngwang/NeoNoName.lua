@@ -18,19 +18,6 @@ end
 
 
 function M.ensure_only_one_no_name()
-  local cur_buf = vim.api.nvim_get_current_buf()
-
-  -- case1
-  if #M.all_no_name_bufs() == 0 then
-    vim.cmd('enew')
-    vim.api.nvim_set_current_buf(cur_buf)
-    return
-  end
-
-  -- case2
-  if #M.all_no_name_bufs() == 1 then return end
-
-  -- case3
   local keep = M.give_me_a_no_name()
   for _, buf in pairs(M.all_no_name_bufs()) do
     if buf ~= keep then
@@ -45,9 +32,14 @@ end
 
 
 function M.give_me_a_no_name()
-  M.ensure_only_one_no_name()
-  -- prefer the current [No Name] buffer.
   local cur_buf = vim.api.nvim_get_current_buf()
+
+  if #M.all_no_name_bufs() == 0 then
+    vim.cmd('enew')
+    vim.api.nvim_set_current_buf(cur_buf)
+  end
+
+  -- prefer the current [No Name] buffer.
   return M.is_no_name_buf(cur_buf) and cur_buf or M.all_no_name_bufs()[1]
 end
 
