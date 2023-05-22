@@ -5,10 +5,10 @@ function M.is_no_name_buf(buf)
   if buf == nil then buf = 0 end
   return
     vim.api.nvim_buf_is_loaded(buf)
-    and vim.api.nvim_buf_get_option(buf, 'buflisted')
+    and vim.bo[buf].buflisted
     and vim.api.nvim_buf_get_name(buf) == ''
-    and vim.api.nvim_buf_get_option(buf, 'buftype') == ''
-    and vim.api.nvim_buf_get_option(buf, 'filetype') == ''
+    and vim.bo[buf].buftype == ''
+    and vim.bo[buf].filetype == ''
 end
 
 
